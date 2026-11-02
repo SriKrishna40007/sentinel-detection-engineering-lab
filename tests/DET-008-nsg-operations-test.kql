@@ -1,0 +1,25 @@
+// Synthetic validation: successful NSG write, security-rule write,
+// and delete operations must be included.
+// Unrelated VM operations and failed NSG operations must be excluded.
+let SyntheticEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    OperationNameValue: string,
+    ActivityStatusValue: string,
+    ResourceId: string
+)
+[
+    datetime(2026-11-02 10:00:00), "admin@test", "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/WRITE", "Success", "/subscriptions/test/nsg/nsg-01",
+    datetime(2026-11-02 10:01:00), "admin@test", "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/WRITE", "Success", "/subscriptions/test/nsg/nsg-01/securityRules/rule-01",
+    datetime(2026-11-02 10:02:00), "admin@test", "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/DELETE", "Success", "/subscriptions/test/nsg/nsg-02",
+    datetime(2026-11-02 10:03:00), "admin@test", "MICROSOFT.COMPUTE/VIRTUALMACHINES/WRITE", "Success", "/subscriptions/test/vm/vm-01",
+    datetime(2026-11-02 10:04:00), "admin@test", "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/WRITE", "Failure", "/subscriptions/test/nsg/nsg-03"
+];
+SyntheticEvents
+| where ActivityStatusValue =~ "Success"
+| where OperationNameValue contains "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| where isnotempty(Caller)
+| project TimeGenerated, Caller, OperationNameValue, ActivityStatusValue, ResourceId
+| order by TimeGenerated asc

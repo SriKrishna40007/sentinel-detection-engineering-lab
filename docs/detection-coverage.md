@@ -9,7 +9,7 @@ Microsoft Sentinel analytics rules built on Azure Activity telemetry.
 | DET-005 | Successful Azure diagnostic settings modifications | Medium | Real matching Azure Activity events observed; Sentinel alert generation not demonstrated |
 | DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium | No matching real event group observed |
 | DET-007 | Five or more distinct successful non-policy Azure Resource Manager deployments by the same caller within a rolling 30-minute window | Medium | Synthetic positive, policy-exclusion and rolling-window tests passed; real-data query returned no qualifying events; real alert/incident not demonstrated |
-| DET-008 | Network Security Group configuration changes | High | No matching real NSG activity observed |
+| DET-008 | Successful Azure Network Security Group and security-rule write/delete operations | High | Synthetic operation-filtering test passed (3 expected rows); no real networking or NSG activity observed in the checked 30-day period; real alert/incident not demonstrated |
 | DET-009 | Azure Policy assignment changes | High | No matching real policy assignment modification observed |
 | DET-010 | Key Vault configuration changes | High | No matching real Key Vault configuration change observed |
 
@@ -36,3 +36,15 @@ The original resource-creation objective was replaced with detection of repeated
 - Sentinel configuration: Rule enabled; Medium severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; single-alert event grouping; incident creation enabled.
 - Alert/incident evidence: No real deployment-triggered Sentinel alert or incident has been demonstrated.
 - MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+
+
+## DET-008 validation update — 2026-11-02
+
+The production query detects successful NSG and nested security-rule write/delete operations. Provider matching uses substring matching, and operation filtering explicitly selects operations ending in `/WRITE` or `/DELETE`.
+
+- Synthetic validation: Passed. Three expected records were returned: NSG write, security-rule write, and NSG delete.
+- Negative cases: Unrelated VM write and failed NSG write were excluded.
+- Real telemetry validation: No NSG-specific or broader Azure networking operations were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- Alert/incident evidence: No real NSG-triggered Sentinel alert or incident has been demonstrated.
+- Detection limitation: The rule detects configuration modifications. It does not inspect resulting NSG rule properties to establish that a port or service became Internet-accessible.

@@ -51,3 +51,13 @@
 Synthetic events are explicitly identified as query-local tests. They are not represented as real Azure events, Sentinel alerts, or incidents.
 
 A successful query execution is not equivalent to a generated Sentinel alert. An enabled analytics rule is not proof of detection in production.
+
+## DET-008 validation
+
+- Detection logic: Successful Azure Network Security Group and nested security-rule write/delete operations.
+- Synthetic validation: Passed. Three expected records were returned: NSG write, security-rule write, and NSG delete.
+- Negative validation: Unrelated VM write and failed NSG write were excluded.
+- Real telemetry validation: No NSG-specific or broader Azure networking operations were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- Alert/incident evidence: No real NSG-triggered Sentinel alert or incident has been demonstrated.
+- Detection limitation: The rule detects configuration modifications. It does not inspect resulting NSG rule properties to establish Internet exposure.
