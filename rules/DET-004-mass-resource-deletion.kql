@@ -1,0 +1,8 @@
+AzureActivity
+| where TimeGenerated >= ago(10m)
+| where ActivityStatusValue =~ "Success"
+| where OperationNameValue endswith "/DELETE"
+| where isnotempty(ResourceId)
+| summarize DeletedResources = dcount(ResourceId), DeletedResourceIds = make_set(ResourceId, 20), Operations = make_set(OperationNameValue, 10) by Caller, SubscriptionId, bin(TimeGenerated, 10m)
+| where DeletedResources > 5
+| project TimeGenerated, Caller, SubscriptionId, DeletedResources, DeletedResourceIds, Operations

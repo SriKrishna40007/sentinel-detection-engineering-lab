@@ -1,0 +1,6 @@
+AzureActivity
+| where TimeGenerated >= ago(5m)
+| where OperationNameValue contains "roleAssignments/write"
+| where ActivityStatusValue =~ "Success"
+| project TimeGenerated, Caller, CallerIpAddress, OperationNameValue, ActivityStatusValue, ResourceGroup, ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc

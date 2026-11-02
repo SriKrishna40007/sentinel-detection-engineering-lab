@@ -1,0 +1,7 @@
+AzureActivity
+| where TimeGenerated >= ago(15m)
+| where ActivityStatusValue =~ "Failure"
+| where isnotempty(Caller)
+| summarize FailedAttempts = count(), Operations = make_set(OperationNameValue, 10), ResourceIds = make_set(ResourceId, 10) by Caller, SubscriptionId, bin(TimeGenerated, 15m)
+| where FailedAttempts >= 5
+| project TimeGenerated, Caller, SubscriptionId, FailedAttempts, Operations, ResourceIds
