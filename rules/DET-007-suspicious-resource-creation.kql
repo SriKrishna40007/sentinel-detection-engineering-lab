@@ -1,8 +1,0 @@
-AzureActivity
-| where TimeGenerated >= ago(30m)
-| where ActivityStatusValue =~ "Success"
-| where OperationNameValue has "MICROSOFT.RESOURCES/DEPLOYMENTS/WRITE" or OperationNameValue has "MICROSOFT.COMPUTE/VIRTUALMACHINES/WRITE"
-| where isnotempty(Caller)
-| summarize CreationCount = count(), Operations = make_set(OperationNameValue, 10), Resources = make_set(ResourceId, 10) by Caller, SubscriptionId, bin(TimeGenerated, 30m)
-| where CreationCount >= 5
-| project TimeGenerated, Caller, SubscriptionId, CreationCount, Operations, Resources

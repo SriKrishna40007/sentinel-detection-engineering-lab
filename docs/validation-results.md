@@ -12,23 +12,42 @@
 - Eight scheduled analytics rules were created and enabled.
 - Diagnostic settings write events were found in AzureActivity.
 - Synthetic query tests returned expected results for selected RBAC and mass-deletion detection logic.
+- DET-004 rolling-window synthetic boundary test passed with six deletion events.
+- DET-007 synthetic positive test passed with five distinct deployments.
+- DET-007 synthetic PolicyDeployment exclusion test passed.
+- DET-007 synthetic rolling-window boundary test passed with five deployments across 10:30.
 
 ## Not demonstrated
 
-- No Sentinel alerts were found in the SecurityAlert query for the seven-day period.
+- No Sentinel alerts were found in the SecurityAlert query for the seven-day period previously checked.
 - No Sentinel incidents were observed in the reviewed incident view.
 - No real RBAC assignment or mass-deletion event was found.
+- No qualifying real non-policy deployment activity was returned by the DET-007 production query.
 - End-to-end alert generation and incident creation remain unverified.
+
+## DET-004 validation
+
+- Detection logic: Rolling 10-minute self-join window.
+- Synthetic validation: Passed. Six synthetic successful deletion events spanning a fixed 10-minute bucket boundary were detected together (`DeletedResources = 6`).
+- Real telemetry validation: Query executed against AzureActivity for the preceding 30 minutes and returned no qualifying results.
+- Sentinel configuration: Enabled; 5-minute frequency; 30-minute lookback; threshold greater than zero; single-alert event grouping; incident creation enabled.
+- Alert/incident evidence: No real deletion-triggered Sentinel alert or incident has been demonstrated.
+
+## DET-007 validation
+
+- Detection logic: Five or more distinct successful non-policy Azure Resource Manager deployments by the same caller within a rolling 30-minute window.
+- Deployment identity: Extracted from `Properties.entity`.
+- Policy exclusion: Deployment entities containing `PolicyDeployment_` are excluded.
+- Synthetic positive validation: Passed. Five distinct deployments met the threshold.
+- Synthetic exclusion validation: Passed. The synthetic PolicyDeployment record was excluded.
+- Synthetic rolling-window validation: Passed. Five deployments from 10:28 through 10:32 were detected together across the 10:30 clock boundary.
+- Real telemetry validation: Production query executed against real AzureActivity data and returned no qualifying non-policy deployments in the checked period.
+- Sentinel configuration: Enabled; Medium severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; single-alert event grouping; incident creation enabled.
+- MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+- Alert/incident evidence: No real deployment-triggered Sentinel alert or incident has been demonstrated.
 
 ## Evidence integrity
 
 Synthetic events are explicitly identified as query-local tests. They are not represented as real Azure events, Sentinel alerts, or incidents.
 
-## DET-004 validation update — 2026-11-02
-
-- Detection logic: Updated to use a rolling 10-minute self-join window rather than fixed 10-minute time buckets.
-- Synthetic validation: Passed. Six synthetic successful deletion events spanning a fixed 10-minute bucket boundary were detected together (`DeletedResources = 6`).
-- Real telemetry validation: The query executed successfully against `AzureActivity` for the preceding 30 minutes and returned no qualifying results.
-- Sentinel configuration: Rule enabled; 5-minute frequency; 30-minute lookback; threshold greater than zero; event grouping set to one alert for all events; incident creation enabled.
-- Alert/incident evidence: No real deletion-triggered Sentinel alert or incident has been demonstrated.
-- Interpretation: Detection logic passed the synthetic boundary test. Real-data execution passed, but no qualifying real deletion activity was present in the validation window.
+A successful query execution is not equivalent to a generated Sentinel alert. An enabled analytics rule is not proof of detection in production.

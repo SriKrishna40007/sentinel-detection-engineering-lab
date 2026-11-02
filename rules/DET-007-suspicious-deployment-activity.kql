@@ -1,0 +1,42 @@
+let Deployments =
+    AzureActivity
+    | where TimeGenerated >= ago(30m)
+    | where ActivityStatusValue =~ "Success"
+    | where OperationNameValue =~ "MICROSOFT.RESOURCES/DEPLOYMENTS/WRITE"
+    | extend DeploymentEntity =
+        tostring(parse_json(tostring(Properties)).entity)
+    | where isnotempty(DeploymentEntity)
+    | where DeploymentEntity !contains "PolicyDeployment_"
+    | where isnotempty(Caller)
+    | project
+        EventTime = TimeGenerated,
+        Caller,
+        SubscriptionId,
+        DeploymentEntity,
+        CallerIpAddress;
+Deployments
+| join kind=inner (
+    Deployments
+    | project
+        Caller,
+        SubscriptionId,
+        CandidateTime = EventTime,
+        CandidateDeployment = DeploymentEntity,
+        CandidateIP = CallerIpAddress
+) on Caller, SubscriptionId
+| where CandidateTime >= EventTime
+    and CandidateTime < EventTime + 30m
+| summarize
+    DistinctDeployments = dcount(CandidateDeployment),
+    DeploymentEntities = make_set(CandidateDeployment, 20),
+    CallerIPs = make_set(CandidateIP, 10)
+    by TimeGenerated = EventTime, Caller, SubscriptionId
+| where DistinctDeployments >= 5
+| project
+    TimeGenerated,
+    Caller,
+    SubscriptionId,
+    DistinctDeployments,
+    DeploymentEntities,
+    CallerIPs
+| order by TimeGenerated desc

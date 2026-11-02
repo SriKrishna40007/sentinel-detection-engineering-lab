@@ -1,0 +1,33 @@
+// Synthetic test: five distinct deployments across a rolling 30-minute
+// window must trigger even when events cross a clock boundary.
+let SyntheticEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    SubscriptionId: string,
+    DeploymentEntity: string
+)
+[
+    datetime(2026-11-02 10:28:00), "test-caller", "test-sub", "/deployments/deploy-001",
+    datetime(2026-11-02 10:29:00), "test-caller", "test-sub", "/deployments/deploy-002",
+    datetime(2026-11-02 10:30:00), "test-caller", "test-sub", "/deployments/deploy-003",
+    datetime(2026-11-02 10:31:00), "test-caller", "test-sub", "/deployments/deploy-004",
+    datetime(2026-11-02 10:32:00), "test-caller", "test-sub", "/deployments/deploy-005"
+];
+let Deployments = SyntheticEvents;
+Deployments
+| join kind=inner (
+    Deployments
+    | project
+        Caller,
+        SubscriptionId,
+        CandidateTime = TimeGenerated,
+        CandidateDeployment = DeploymentEntity
+) on Caller, SubscriptionId
+| where CandidateTime >= TimeGenerated
+    and CandidateTime < TimeGenerated + 30m
+| summarize
+    DistinctDeployments = dcount(CandidateDeployment),
+    DeploymentEntities = make_set(CandidateDeployment, 20)
+    by TimeGenerated, Caller, SubscriptionId
+| where DistinctDeployments >= 5
+| project TimeGenerated, Caller, SubscriptionId, DistinctDeployments, DeploymentEntities
