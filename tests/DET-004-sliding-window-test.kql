@@ -1,0 +1,31 @@
+let TestEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    SubscriptionId: string,
+    ResourceId: string,
+    OperationNameValue: string,
+    ActivityStatusValue: string
+)
+[
+    datetime(2026-11-02 10:08:00), "test-user", "test-sub", "/resource/1", "Microsoft.Compute/virtualMachines/delete", "Success",
+    datetime(2026-11-02 10:09:00), "test-user", "test-sub", "/resource/2", "Microsoft.Compute/virtualMachines/delete", "Success",
+    datetime(2026-11-02 10:09:30), "test-user", "test-sub", "/resource/3", "Microsoft.Compute/virtualMachines/delete", "Success",
+    datetime(2026-11-02 10:10:00), "test-user", "test-sub", "/resource/4", "Microsoft.Compute/virtualMachines/delete", "Success",
+    datetime(2026-11-02 10:11:00), "test-user", "test-sub", "/resource/5", "Microsoft.Compute/virtualMachines/delete", "Success",
+    datetime(2026-11-02 10:12:00), "test-user", "test-sub", "/resource/6", "Microsoft.Compute/virtualMachines/delete", "Success"
+];
+TestEvents
+| extend EventTime = TimeGenerated
+| join kind=inner (
+    TestEvents
+    | project Caller, SubscriptionId,
+              CandidateTime = TimeGenerated,
+              CandidateResourceId = ResourceId
+) on Caller, SubscriptionId
+| where CandidateTime >= EventTime
+    and CandidateTime < EventTime + 10m
+| summarize
+    DeletedResources = dcount(CandidateResourceId),
+    ResourceIds = make_set(CandidateResourceId)
+    by EventTime, Caller, SubscriptionId
+| where DeletedResources > 5

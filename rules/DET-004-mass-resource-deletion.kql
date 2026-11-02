@@ -1,8 +1,40 @@
-AzureActivity
-| where TimeGenerated >= ago(10m)
-| where ActivityStatusValue =~ "Success"
-| where OperationNameValue endswith "/DELETE"
-| where isnotempty(ResourceId)
-| summarize DeletedResources = dcount(ResourceId), DeletedResourceIds = make_set(ResourceId, 20), Operations = make_set(OperationNameValue, 10) by Caller, SubscriptionId, bin(TimeGenerated, 10m)
+let Deletions =
+    AzureActivity
+    | where TimeGenerated >= ago(30m)
+    | where ActivityStatusValue =~ "Success"
+    | where OperationNameValue endswith "/DELETE"
+    | where isnotempty(ResourceId)
+    | where isnotempty(Caller)
+    | project
+        EventTime = TimeGenerated,
+        Caller,
+        SubscriptionId,
+        ResourceId,
+        OperationNameValue;
+
+Deletions
+| join kind=inner (
+    Deletions
+    | project
+        Caller,
+        SubscriptionId,
+        CandidateTime = EventTime,
+        CandidateResourceId = ResourceId,
+        CandidateOperation = OperationNameValue
+) on Caller, SubscriptionId
+| where CandidateTime >= EventTime
+    and CandidateTime < EventTime + 10m
+| summarize
+    DeletedResources = dcount(CandidateResourceId),
+    DeletedResourceIds = make_set(CandidateResourceId, 20),
+    Operations = make_set(CandidateOperation, 10)
+    by TimeGenerated = EventTime, Caller, SubscriptionId
 | where DeletedResources > 5
-| project TimeGenerated, Caller, SubscriptionId, DeletedResources, DeletedResourceIds, Operations
+| project
+    TimeGenerated,
+    Caller,
+    SubscriptionId,
+    DeletedResources,
+    DeletedResourceIds,
+    Operations
+| order by TimeGenerated desc
