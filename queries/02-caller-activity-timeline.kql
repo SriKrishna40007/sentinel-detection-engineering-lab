@@ -1,0 +1,13 @@
+// Build a timeline of Azure control-plane activity for one caller.
+let TargetCaller = ""; // Replace with caller/object ID
+let StartTime = ago(7d);
+AzureActivity
+| where TimeGenerated >= StartTime
+| where Caller =~ TargetCaller
+| summarize
+    EventCount = count(),
+    Operations = make_set(OperationNameValue, 50),
+    SourceIPs = make_set(CallerIpAddress, 20),
+    Resources = make_set(ResourceId, 50)
+    by bin(TimeGenerated, 1h), ActivityStatusValue
+| order by TimeGenerated desc

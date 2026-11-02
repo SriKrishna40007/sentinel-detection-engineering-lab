@@ -1,0 +1,33 @@
+// Correlate Sentinel alerts with incidents using verified workspace fields.
+let AlertWindow = ago(30d);
+SecurityAlert
+| where TimeGenerated >= AlertWindow
+| project
+    AlertTime = TimeGenerated,
+    SystemAlertId,
+    AlertName,
+    AlertSeverity,
+    AlertProvider = ProviderName
+| join kind=leftouter (
+    SecurityIncident
+    | where TimeGenerated >= AlertWindow
+    | mv-expand AlertId = AlertIds
+    | project
+        IncidentTime = TimeGenerated,
+        IncidentNumber,
+        IncidentName,
+        IncidentSeverity = Severity,
+        IncidentStatus = Status,
+        AlertId = tostring(AlertId)
+) on $left.SystemAlertId == $right.AlertId
+| project
+    AlertTime,
+    AlertName,
+    AlertSeverity,
+    SystemAlertId,
+    IncidentNumber,
+    IncidentName,
+    IncidentSeverity,
+    IncidentStatus,
+    AlertProvider
+| order by AlertTime desc

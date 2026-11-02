@@ -1,0 +1,9 @@
+// Review Azure diagnostic-settings modifications.
+AzureActivity
+| where TimeGenerated >= ago(30d)
+| where OperationNameValue =~ "MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE"
+    or OperationNameValue =~ "MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE"
+| project TimeGenerated, Caller, CallerIpAddress,
+          OperationNameValue, ActivityStatusValue,
+          ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc

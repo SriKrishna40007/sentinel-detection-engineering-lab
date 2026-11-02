@@ -1,0 +1,15 @@
+// Investigate successful or failed Azure control-plane operations.
+// Set the investigation window and filter by caller, IP, or resource.
+let StartTime = ago(24h);
+let CallerFilter = ""; // Optional: Entra ID object ID or caller identity
+let IPFilter = "";     // Optional: source IP address
+let ResourceFilter = ""; // Optional: resource ID substring
+AzureActivity
+| where TimeGenerated >= StartTime
+| where isempty(CallerFilter) or Caller =~ CallerFilter
+| where isempty(IPFilter) or CallerIpAddress == IPFilter
+| where isempty(ResourceFilter) or ResourceId contains ResourceFilter
+| project TimeGenerated, Caller, CallerIpAddress,
+          OperationNameValue, ActivityStatusValue,
+          ResourceGroup, ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc

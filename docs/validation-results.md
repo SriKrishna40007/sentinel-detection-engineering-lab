@@ -81,3 +81,13 @@ A successful query execution is not equivalent to a generated Sentinel alert. An
 - MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
 - Alert/incident evidence: No real Key Vault-triggered Sentinel alert or incident has been demonstrated.
 - Validation limitation: Synthetic events were evaluated in an in-memory KQL datatable. They did not create Azure resources or Sentinel alerts.
+
+## Investigation query pack validation — 2026-11-02
+
+- Seven KQL investigation queries created under `queries/`.
+- Sentinel alert/incident correlation query executed successfully against `SecurityAlert` and `SecurityIncident`.
+- Schema validation confirmed `SecurityAlert.SystemAlertId` and `SecurityIncident.AlertIds`.
+- Two DET-005 alert records were correlated with Sentinel incidents #1 and #2.
+- Both incidents are Medium severity and currently New.
+- Both records relate to the same underlying diagnostic-settings modification; they are not two distinct security events.
+- Investigation status: Authorization and root cause remain undetermined.

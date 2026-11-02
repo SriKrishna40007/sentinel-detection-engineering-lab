@@ -1,0 +1,10 @@
+// Review NSG and nested security-rule modifications.
+AzureActivity
+| where TimeGenerated >= ago(30d)
+| where OperationNameValue contains "MICROSOFT.NETWORK/NETWORKSECURITYGROUPS"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| project TimeGenerated, Caller, CallerIpAddress,
+          OperationNameValue, ActivityStatusValue,
+          ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc

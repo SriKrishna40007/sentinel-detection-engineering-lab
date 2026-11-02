@@ -1,0 +1,10 @@
+// Review role assignment creation and deletion activity.
+AzureActivity
+| where TimeGenerated >= ago(30d)
+| where OperationNameValue contains "MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| project TimeGenerated, Caller, CallerIpAddress,
+          OperationNameValue, ActivityStatusValue,
+          ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc

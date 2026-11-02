@@ -1,0 +1,10 @@
+// Review Key Vault configuration write/delete activity.
+AzureActivity
+| where TimeGenerated >= ago(30d)
+| where OperationNameValue contains "MICROSOFT.KEYVAULT"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| project TimeGenerated, Caller, CallerIpAddress,
+          OperationNameValue, ActivityStatusValue,
+          ResourceId, SubscriptionId, Properties
+| order by TimeGenerated desc
