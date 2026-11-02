@@ -10,7 +10,7 @@ Microsoft Sentinel analytics rules built on Azure Activity telemetry.
 | DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium | No matching real event group observed |
 | DET-007 | Five or more distinct successful non-policy Azure Resource Manager deployments by the same caller within a rolling 30-minute window | Medium | Synthetic positive, policy-exclusion and rolling-window tests passed; real-data query returned no qualifying events; real alert/incident not demonstrated |
 | DET-008 | Successful Azure Network Security Group and security-rule write/delete operations | High | Synthetic operation-filtering test passed (3 expected rows); no real networking or NSG activity observed in the checked 30-day period; real alert/incident not demonstrated |
-| DET-009 | Azure Policy assignment changes | High | No matching real policy assignment modification observed |
+| DET-009 | Successful Azure Policy assignment write/delete operations | High | Synthetic operation-filtering test passed (2 expected rows); no matching real policy assignment activity observed in the checked 30-day period; real alert/incident not demonstrated |
 | DET-010 | Key Vault configuration changes | High | No matching real Key Vault configuration change observed |
 
 ## Important validation notes
@@ -48,3 +48,15 @@ The production query detects successful NSG and nested security-rule write/delet
 - Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
 - Alert/incident evidence: No real NSG-triggered Sentinel alert or incident has been demonstrated.
 - Detection limitation: The rule detects configuration modifications. It does not inspect resulting NSG rule properties to establish that a port or service became Internet-accessible.
+
+
+## DET-009 validation update — 2026-11-02
+
+The production query detects successful Azure Policy assignment write and delete operations, using provider substring matching and explicit operation suffix matching.
+
+- Synthetic validation: Passed. Two expected records were returned: policy assignment write and policy assignment delete.
+- Negative cases: Policy definition write, failed assignment write, and assignment write with an empty caller were excluded.
+- Real telemetry validation: No matching Azure Policy assignment operations were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- Alert/incident evidence: No real policy-assignment-triggered Sentinel alert or incident has been demonstrated.
+- MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.

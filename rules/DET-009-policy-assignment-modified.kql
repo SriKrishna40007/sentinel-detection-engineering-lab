@@ -2,6 +2,17 @@ AzureActivity
 | where TimeGenerated >= ago(30m)
 | where ActivityStatusValue =~ "Success"
 | where OperationNameValue contains "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS"
-| where OperationNameValue has_any ("WRITE", "DELETE")
-| project TimeGenerated, Caller, OperationNameValue, ActivityStatusValue, ResourceGroup, ResourceId, SubscriptionId
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| where isnotempty(Caller)
+| project
+    TimeGenerated,
+    Caller,
+    CallerIpAddress,
+    OperationNameValue,
+    ActivityStatusValue,
+    ResourceGroup,
+    ResourceId,
+    SubscriptionId,
+    Properties
 | order by TimeGenerated desc

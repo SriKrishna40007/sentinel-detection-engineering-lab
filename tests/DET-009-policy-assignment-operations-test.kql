@@ -1,0 +1,24 @@
+// Synthetic validation: successful policy assignment WRITE and DELETE
+// must be included. Unrelated, failed and caller-less events are excluded.
+let SyntheticEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    OperationNameValue: string,
+    ActivityStatusValue: string,
+    ResourceId: string
+)
+[
+    datetime(2026-11-02 10:00:00), "admin@test", "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS/WRITE", "Success", "/subscriptions/test/providers/Microsoft.Authorization/policyAssignments/policy-01",
+    datetime(2026-11-02 10:01:00), "admin@test", "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS/DELETE", "Success", "/subscriptions/test/providers/Microsoft.Authorization/policyAssignments/policy-02",
+    datetime(2026-11-02 10:02:00), "admin@test", "MICROSOFT.AUTHORIZATION/POLICYDEFINITIONS/WRITE", "Success", "/subscriptions/test/providers/Microsoft.Authorization/policyDefinitions/definition-01",
+    datetime(2026-11-02 10:03:00), "admin@test", "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS/WRITE", "Failure", "/subscriptions/test/providers/Microsoft.Authorization/policyAssignments/policy-03",
+    datetime(2026-11-02 10:04:00), "", "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS/WRITE", "Success", "/subscriptions/test/providers/Microsoft.Authorization/policyAssignments/policy-04"
+];
+SyntheticEvents
+| where ActivityStatusValue =~ "Success"
+| where OperationNameValue contains "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| where isnotempty(Caller)
+| project TimeGenerated, Caller, OperationNameValue, ActivityStatusValue, ResourceId
+| order by TimeGenerated asc

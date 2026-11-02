@@ -61,3 +61,13 @@ A successful query execution is not equivalent to a generated Sentinel alert. An
 - Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
 - Alert/incident evidence: No real NSG-triggered Sentinel alert or incident has been demonstrated.
 - Detection limitation: The rule detects configuration modifications. It does not inspect resulting NSG rule properties to establish Internet exposure.
+
+## DET-009 validation
+
+- Detection logic: Successful Azure Policy assignment write and delete operations.
+- Synthetic validation: Passed. Two expected records were returned: policy assignment write and policy assignment delete.
+- Negative validation: Policy definition write, failed assignment write, and assignment write with an empty caller were excluded.
+- Real telemetry validation: No matching Azure Policy assignment operations were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+- Alert/incident evidence: No real policy-assignment-triggered Sentinel alert or incident has been demonstrated.
