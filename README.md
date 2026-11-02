@@ -1,68 +1,129 @@
 # Microsoft Sentinel Detection Engineering Lab
 
-A hands-on cloud security project demonstrating Azure Activity monitoring and Microsoft Sentinel detection engineering with Kusto Query Language (KQL).
+A practical cloud security detection engineering project built using Microsoft Azure, Microsoft Sentinel, Log Analytics and Kusto Query Language (KQL).
 
-## Project objectives
+The project demonstrates Azure control-plane monitoring, threat detection, investigation workflows, MITRE ATT&CK mapping and evidence-driven incident analysis.
 
-- Ingest Azure subscription activity into Log Analytics.
-- Build scheduled Sentinel analytics rules for security-relevant Azure operations.
-- Investigate activity using KQL.
-- Map detection objectives to practical cloud security scenarios.
-- Document validation results honestly, distinguishing real telemetry from synthetic query tests.
+## Project Capabilities
+
+- Azure Activity ingestion into Log Analytics.
+- Eight scheduled Microsoft Sentinel analytics rules (DET-003–DET-010).
+- KQL-based detection and investigation queries.
+- Synthetic positive and negative detection testing.
+- MITRE ATT&CK mapping with documented confidence and limitations.
+- Sentinel alert-to-incident correlation.
+- Incident investigation reports distinguishing simulated scenarios from real Azure evidence.
 
 ## Architecture
 
+```text
 Azure Subscription
-    |
-    v
+       |
+       v
 Azure Activity Diagnostic Settings
-    |
-    v
+       |
+       v
 Log Analytics Workspace
-    |
-    v
+       |
+       v
 AzureActivity Table
-    |
-    v
+       |
+       v
 Microsoft Sentinel Analytics Rules
-    |
-    v
-Potential Alerts and Incidents
+       |
+       v
+SecurityAlert and SecurityIncident
+       |
+       v
+KQL Investigation and Incident Analysis
+```
 
 See [Architecture](docs/architecture.md).
 
-## Detection coverage
+## Detection Coverage
 
-Eight scheduled analytics rules are included:
-
-- DET-003: Privileged role assignment
-- DET-004: Mass resource deletion
-- DET-005: Diagnostic settings modified
-- DET-006: Repeated failed Azure operations
-- DET-007: Suspicious resource creation
-- DET-008: Network Security Group changes
-- DET-009: Policy assignment modified
-- DET-010: Key Vault configuration modified
+| Rule | Detection Objective | Severity |
+|---|---|---|
+| DET-003 | Successful privileged role assignments | High |
+| DET-004 | More than five successful resource deletions in a rolling 10-minute window | High |
+| DET-005 | Successful Azure diagnostic settings modifications | Medium |
+| DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium |
+| DET-007 | Five or more distinct successful non-policy ARM deployments by the same caller within a rolling 30-minute window | Medium |
+| DET-008 | Successful NSG and security-rule write/delete operations | High |
+| DET-009 | Successful Azure Policy assignment write/delete operations | High |
+| DET-010 | Successful Key Vault write/delete operations | High |
 
 See [Detection Coverage](docs/detection-coverage.md).
 
-## Repository structure
+## Investigation Query Pack
 
-- `rules/` — scheduled analytics rule KQL
-- `queries/` — investigation queries
-- `docs/` — architecture, coverage, and validation documentation
-- `incidents/` — simulated incident investigation exercises
-- `evidence/` — evidence index and supporting material
-- `screenshots/` — selected portal screenshots
+Seven reusable KQL queries are included:
 
-## Validation status
+1. Suspicious Azure activity investigation.
+2. Caller activity timeline.
+3. Diagnostic settings investigation.
+4. RBAC assignment investigation.
+5. Network Security Group investigation.
+6. Key Vault configuration investigation.
+7. Sentinel alert-to-incident correlation.
 
-Azure Activity ingestion and eight enabled analytics rules were verified. Real diagnostic settings events were observed in AzureActivity.
+The correlation query was successfully executed against the workspace. Two DET-005 alert records were correlated with two Sentinel incidents.
 
-End-to-end Sentinel alert and incident generation has not yet been demonstrated. Synthetic query tests are query-local and are not represented as real alerts or incidents.
+## MITRE ATT&CK
 
-See [Validation Results](docs/validation-results.md).
+Documented mappings for supported detection objectives:
+
+- DET-003: T1098.003 — Additional Cloud Roles.
+- DET-005: T1685.002 — Disable or Modify Cloud Log.
+- DET-008: T1686.001 — Cloud Firewall (candidate mapping).
+
+Other detections remain deliberately unmapped where the available logic does not support a sufficiently specific technique.
+
+See [MITRE ATT&CK Mapping](docs/mitre-attack-mapping.md).
+
+## Incident Investigation
+
+Three investigation reports are included:
+
+- `incident-01-simulated.md` — simulated privileged role assignment.
+- `incident-02-simulated.md` — simulated mass resource deletion.
+- `incident-03-real-diagnostic-settings-change.md` — real Azure Activity and Sentinel alert/incident evidence.
+
+The real DET-005 investigation remains open. Authorization and root cause have not been established. Both incidents relate to the same underlying event.
+
+## Validation and Evidence Integrity
+
+Verified results include:
+
+- Azure Activity ingestion.
+- Eight enabled scheduled analytics rules.
+- Synthetic positive and negative tests for selected detection logic.
+- Rolling-window detection tests.
+- Real DET-005 alert generation and incident creation.
+- Successful correlation of DET-005 alerts with their incidents.
+
+Synthetic query tests are not represented as real Azure events or Sentinel alerts.
+
+No real alert or incident generation has been demonstrated for the other detection rules.
+
+See [Validation Results](docs/validation-results.md) and [Evidence Index](evidence/README.md).
+
+## Repository Structure
+
+- `rules/` — scheduled analytics rule KQL.
+- `queries/` — investigation query pack.
+- `tests/` — synthetic KQL validation scenarios.
+- `docs/` — architecture, detection coverage, validation and ATT&CK mapping.
+- `incidents/` — simulated and real incident investigation reports.
+- `evidence/` — evidence index and supporting material.
+- `screenshots/` — selected portal screenshots.
+
+## Playbook Status
+
+A functional automated Sentinel playbook has not been demonstrated in this delivery. Automation remains a potential extension after connector permissions, execution prerequisites and testing are established.
 
 ## Disclaimer
 
-This is a learning and portfolio lab. Detection rules require environment-specific tuning and validation before production use. No destructive Azure actions were performed as part of the documented validation.
+This is a learning and portfolio lab, not a production security monitoring service. Detection rules require environment-specific tuning, authorization checks and operational validation before production deployment.
+
+No destructive Azure actions were performed as part of the documented validation.
