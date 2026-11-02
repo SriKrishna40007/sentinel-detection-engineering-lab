@@ -19,11 +19,10 @@
 
 ## Not demonstrated
 
-- No Sentinel alerts were found in the SecurityAlert query for the seven-day period previously checked.
-- No Sentinel incidents were observed in the reviewed incident view.
+- DET-005 generated two real Sentinel alerts and two incidents from the same underlying diagnostic-settings write event; these are not two distinct changes.
 - No real RBAC assignment or mass-deletion event was found.
 - No qualifying real non-policy deployment activity was returned by the DET-007 production query.
-- End-to-end alert generation and incident creation remain unverified.
+- End-to-end alert generation and incident creation were demonstrated for DET-005. They have not been demonstrated for the other detection rules.
 
 ## DET-004 validation
 
@@ -71,3 +70,14 @@ A successful query execution is not equivalent to a generated Sentinel alert. An
 - Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
 - MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
 - Alert/incident evidence: No real policy-assignment-triggered Sentinel alert or incident has been demonstrated.
+
+## DET-010 validation
+
+- Detection logic: Successful Azure Key Vault write and delete operations.
+- Synthetic validation: Passed. Two expected records were returned: successful Key Vault write and successful Key Vault delete.
+- Negative validation: Failed Key Vault write, unrelated Compute write, and Key Vault write with an empty caller were excluded.
+- Real telemetry validation: No matching Key Vault operations were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+- Alert/incident evidence: No real Key Vault-triggered Sentinel alert or incident has been demonstrated.
+- Validation limitation: Synthetic events were evaluated in an in-memory KQL datatable. They did not create Azure resources or Sentinel alerts.

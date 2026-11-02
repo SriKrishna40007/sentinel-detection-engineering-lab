@@ -1,0 +1,33 @@
+let TestEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    CallerIpAddress: string,
+    OperationNameValue: string,
+    ActivityStatusValue: string,
+    ResourceGroup: string,
+    ResourceId: string,
+    SubscriptionId: string
+)
+[
+    datetime(2026-11-02T10:00:00Z), "admin@example.com", "192.0.2.10", "MICROSOFT.KEYVAULT/VAULTS/WRITE", "Success", "rg-test", "/subscriptions/test/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test", "sub-test",
+    datetime(2026-11-02T10:01:00Z), "admin@example.com", "192.0.2.10", "MICROSOFT.KEYVAULT/VAULTS/DELETE", "Success", "rg-test", "/subscriptions/test/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test", "sub-test",
+    datetime(2026-11-02T10:02:00Z), "admin@example.com", "192.0.2.10", "MICROSOFT.KEYVAULT/VAULTS/WRITE", "Failure", "rg-test", "/subscriptions/test/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test", "sub-test",
+    datetime(2026-11-02T10:03:00Z), "admin@example.com", "192.0.2.10", "MICROSOFT.COMPUTE/VIRTUALMACHINES/WRITE", "Success", "rg-test", "/subscriptions/test/resourceGroups/rg-test/providers/Microsoft.Compute/virtualMachines/vm-test", "sub-test",
+    datetime(2026-11-02T10:04:00Z), "", "192.0.2.10", "MICROSOFT.KEYVAULT/VAULTS/WRITE", "Success", "rg-test", "/subscriptions/test/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test", "sub-test"
+];
+TestEvents
+| where ActivityStatusValue =~ "Success"
+| where OperationNameValue contains "MICROSOFT.KEYVAULT"
+| where OperationNameValue endswith "/WRITE"
+    or OperationNameValue endswith "/DELETE"
+| where isnotempty(Caller)
+| project
+    TimeGenerated,
+    Caller,
+    CallerIpAddress,
+    OperationNameValue,
+    ActivityStatusValue,
+    ResourceGroup,
+    ResourceId,
+    SubscriptionId
+| order by TimeGenerated asc

@@ -6,19 +6,19 @@ Microsoft Sentinel analytics rules built on Azure Activity telemetry.
 |---|---|---|---|
 | DET-003 | Successful privileged role assignments | High | Query-local synthetic test passed; no matching real RBAC event observed |
 | DET-004 | More than five successful resource deletions in a rolling 10-minute window | High | Synthetic rolling-window boundary test passed; real AzureActivity query returned no qualifying events; real alert/incident not demonstrated |
-| DET-005 | Successful Azure diagnostic settings modifications | Medium | Real matching Azure Activity events observed; Sentinel alert generation not demonstrated |
+| DET-005 | Successful Azure diagnostic settings modifications | Medium | Real Azure Activity event generated two Sentinel alerts and two incidents; both incidents linked to the same underlying event |
 | DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium | No matching real event group observed |
 | DET-007 | Five or more distinct successful non-policy Azure Resource Manager deployments by the same caller within a rolling 30-minute window | Medium | Synthetic positive, policy-exclusion and rolling-window tests passed; real-data query returned no qualifying events; real alert/incident not demonstrated |
 | DET-008 | Successful Azure Network Security Group and security-rule write/delete operations | High | Synthetic operation-filtering test passed (3 expected rows); no real networking or NSG activity observed in the checked 30-day period; real alert/incident not demonstrated |
 | DET-009 | Successful Azure Policy assignment write/delete operations | High | Synthetic operation-filtering test passed (2 expected rows); no matching real policy assignment activity observed in the checked 30-day period; real alert/incident not demonstrated |
-| DET-010 | Key Vault configuration changes | High | No matching real Key Vault configuration change observed |
+| DET-010 | Successful Key Vault write and delete operations | High | Synthetic positive/negative validation passed (2 expected rows); no matching real Key Vault activity observed in the checked 30-day period; real alert/incident not demonstrated |
 
 ## Important validation notes
 
 - Enabled analytics rules are not proof that alerts have fired.
 - Synthetic datatable tests validate query logic only; they do not create Sentinel alerts.
 - Real Azure Activity events were verified for diagnostic settings changes.
-- No real Sentinel incidents were observed during the validation period.
+- Two real Sentinel incidents were verified for DET-005; other detection rules have not yet demonstrated real alert/incident generation.
 - Rule scheduling and query lookback settings must be checked against the deployed rule configuration before claiming exact parity.
 
 ## DET-004 validation update — 2026-11-02
@@ -60,3 +60,15 @@ The production query detects successful Azure Policy assignment write and delete
 - Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
 - Alert/incident evidence: No real policy-assignment-triggered Sentinel alert or incident has been demonstrated.
 - MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+
+## DET-010 validation update — 2026-11-02
+
+The production query detects successful Azure Key Vault write and delete operations. It uses provider substring matching, explicit `/WRITE` and `/DELETE` operation suffix matching, and requires a non-empty caller.
+
+- Synthetic validation: Passed. Two expected records were returned: successful Key Vault write and successful Key Vault delete.
+- Negative cases: Failed Key Vault write, unrelated Compute write, and Key Vault write with an empty caller were excluded.
+- Real telemetry validation: No Key Vault operation records were found in the checked 30-day period.
+- Sentinel configuration: Enabled; High severity; 5-minute frequency; 30-minute lookback; threshold greater than zero; one alert per event; incident creation enabled.
+- Alert/incident evidence: No real Key Vault-triggered Sentinel alert or incident has been demonstrated.
+- MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
+- Validation limitation: Synthetic events were created in an in-memory KQL datatable. They did not create Azure resources or Sentinel alerts.
