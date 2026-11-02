@@ -1,7 +1,7 @@
 AzureActivity
 | where TimeGenerated >= ago(30m)
 | where ActivityStatusValue =~ "Success"
-| where OperationNameValue has "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS"
+| where OperationNameValue contains "MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS"
 | where OperationNameValue has_any ("WRITE", "DELETE")
 | project TimeGenerated, Caller, OperationNameValue, ActivityStatusValue, ResourceGroup, ResourceId, SubscriptionId
 | order by TimeGenerated desc
