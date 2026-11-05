@@ -91,3 +91,14 @@ A successful query execution is not equivalent to a generated Sentinel alert. An
 - Both incidents are Medium severity and currently New.
 - Both records relate to the same underlying diagnostic-settings modification; they are not two distinct security events.
 - Investigation status: Authorization and root cause remain undetermined.
+
+
+## Final repository validation scope
+
+DET-003 synthetic validation returned the three expected built-in privileged
+roles and excluded the negative cases. The live query executed without error
+and returned no matching event in the selected time range.
+
+Repository CI performs static file, rule inventory and evidence-reference
+checks. Runtime KQL validation remains dependent on execution in Microsoft
+Sentinel. No claim is made that every rule generated a real alert or incident.

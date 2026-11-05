@@ -4,10 +4,10 @@ Microsoft Sentinel analytics rules built on Azure Activity telemetry.
 
 | Rule | Detection objective | Severity | Validation status |
 |---|---|---|---|
-| DET-003 | Successful privileged role assignments | High | Query-local synthetic test passed; no matching real RBAC event observed |
+| DET-003 | Successful assignments of Owner, User Access Administrator and Role Based Access Control Administrator | High | Synthetic test returned the three expected built-in roles; live query executed without error; no matching real event observed |
 | DET-004 | More than five successful resource deletions in a rolling 10-minute window | High | Synthetic rolling-window boundary test passed; real AzureActivity query returned no qualifying events; real alert/incident not demonstrated |
 | DET-005 | Successful Azure diagnostic settings modifications | Medium | Real Azure Activity event generated two Sentinel alerts and two incidents; both incidents linked to the same underlying event |
-| DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium | No matching real event group observed |
+| DET-006 | Five or more failed Azure operations by one caller in a fixed 15-minute time bucket | Medium | Fixed time buckets are used rather than a continuously rolling window; no matching real event group observed |
 | DET-007 | Five or more distinct successful non-policy Azure Resource Manager deployments by the same caller within a rolling 30-minute window | Medium | Synthetic positive, policy-exclusion and rolling-window tests passed; real-data query returned no qualifying events; real alert/incident not demonstrated |
 | DET-008 | Successful Azure Network Security Group and security-rule write/delete operations | High | Synthetic operation-filtering test passed (3 expected rows); no real networking or NSG activity observed in the checked 30-day period; real alert/incident not demonstrated |
 | DET-009 | Successful Azure Policy assignment write/delete operations | High | Synthetic operation-filtering test passed (2 expected rows); no matching real policy assignment activity observed in the checked 30-day period; real alert/incident not demonstrated |
@@ -72,3 +72,18 @@ The production query detects successful Azure Key Vault write and delete operati
 - Alert/incident evidence: No real Key Vault-triggered Sentinel alert or incident has been demonstrated.
 - MITRE ATT&CK: No technique configured because a sufficiently supported mapping was not established.
 - Validation limitation: Synthetic events were created in an in-memory KQL datatable. They did not create Azure resources or Sentinel alerts.
+
+
+## Release review notes
+
+- DET-003 now explicitly detects three built-in privileged roles: Owner,
+  User Access Administrator and Role Based Access Control Administrator.
+  Custom roles with equivalent permissions are not covered.
+- DET-004 and DET-007 use rolling-window self-joins. Overlapping qualifying
+  windows may produce multiple result rows for one activity burst; alert
+  grouping should be reviewed in the deployed Sentinel configuration.
+- DET-006 uses fixed 15-minute bins, not a continuously rolling window.
+- Synthetic KQL files are query-local validation examples, not automated
+  assertion-based tests.
+- CI validates repository structure and evidence references. It does not
+  execute KQL against the Azure Log Analytics engine.

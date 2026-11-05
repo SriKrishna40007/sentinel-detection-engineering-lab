@@ -1,0 +1,40 @@
+// Synthetic regression test:
+// Three privileged built-in roles must be detected.
+// Contributor, Reader, failed assignments and missing role data must be excluded.
+
+let SyntheticEvents = datatable(
+    TimeGenerated: datetime,
+    Caller: string,
+    ActivityStatusValue: string,
+    RequestBody: dynamic
+)
+[
+    datetime(2026-11-02 10:00:00), "owner-test", "Success",
+        dynamic({"properties":{"roleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"}}),
+    datetime(2026-11-02 10:01:00), "uaa-test", "Success",
+        dynamic({"properties":{"roleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9"}}),
+    datetime(2026-11-02 10:02:00), "rbac-admin-test", "Success",
+        dynamic({"Properties":{"RoleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/f58310d9-a9f6-439a-9e8d-f62e7b41a168"}}),
+    datetime(2026-11-02 10:03:00), "contributor-test", "Success",
+        dynamic({"properties":{"roleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"}}),
+    datetime(2026-11-02 10:04:00), "reader-test", "Success",
+        dynamic({"properties":{"roleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"}}),
+    datetime(2026-11-02 10:05:00), "failed-owner-test", "Failure",
+        dynamic({"properties":{"roleDefinitionId":"/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"}}),
+    datetime(2026-11-02 10:06:00), "missing-role-test", "Success",
+        dynamic({"Properties":{}})
+];
+
+SyntheticEvents
+| where ActivityStatusValue =~ "Success"
+| extend RoleDefinitionId = tostring(coalesce(RequestBody.properties.roleDefinitionId, RequestBody.Properties.RoleDefinitionId))
+| extend RoleId = tostring(split(RoleDefinitionId, "/")[-1])
+| extend AssignedRole = case(
+    RoleId =~ "8e3af657-a8ff-443c-a75c-2fe8c4bcb635", "Owner",
+    RoleId =~ "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9", "User Access Administrator",
+    RoleId =~ "f58310d9-a9f6-439a-9e8d-f62e7b41a168", "Role Based Access Control Administrator",
+    "Other"
+)
+| where AssignedRole != "Other"
+| project TimeGenerated, Caller, AssignedRole, RoleDefinitionId
+| order by TimeGenerated asc

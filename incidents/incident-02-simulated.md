@@ -2,7 +2,7 @@
 
 **Classification:** Simulated investigation  
 **Severity:** High  
-**MITRE ATT&CK:** T1485 — Data Destruction
+**MITRE ATT&CK:** No technique assigned — resource deletion alone does not establish data destruction
 
 ## Scenario
 

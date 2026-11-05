@@ -2,7 +2,7 @@
 
 **Classification:** Simulated investigation  
 **Severity:** High  
-**MITRE ATT&CK:** T1098 — Account Manipulation
+**MITRE ATT&CK:** T1098.003 — Additional Cloud Roles
 
 ## Scenario
 

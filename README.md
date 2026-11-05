@@ -44,10 +44,10 @@ See [Architecture](docs/architecture.md).
 
 | Rule | Detection Objective | Severity |
 |---|---|---|
-| DET-003 | Successful privileged role assignments | High |
+| DET-003 | Successful assignments of Owner, User Access Administrator and Role Based Access Control Administrator | High |
 | DET-004 | More than five successful resource deletions in a rolling 10-minute window | High |
 | DET-005 | Successful Azure diagnostic settings modifications | Medium |
-| DET-006 | Five or more failed Azure operations by one caller in 15 minutes | Medium |
+| DET-006 | Five or more failed Azure operations by one caller in a fixed 15-minute time bucket | Medium |
 | DET-007 | Five or more distinct successful non-policy ARM deployments by the same caller within a rolling 30-minute window | Medium |
 | DET-008 | Successful NSG and security-rule write/delete operations | High |
 | DET-009 | Successful Azure Policy assignment write/delete operations | High |

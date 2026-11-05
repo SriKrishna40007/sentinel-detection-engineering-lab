@@ -1,6 +1,29 @@
 AzureActivity
 | where TimeGenerated >= ago(5m)
-| where OperationNameValue contains "roleAssignments/write"
+| where CategoryValue =~ "Administrative"
+| where OperationNameValue =~ "Microsoft.Authorization/roleAssignments/write"
 | where ActivityStatusValue =~ "Success"
-| project TimeGenerated, Caller, CallerIpAddress, OperationNameValue, ActivityStatusValue, ResourceGroup, ResourceId, SubscriptionId, Properties
+| extend PropertiesDynamic = parse_json(Properties)
+| extend RequestBody = parse_json(tostring(PropertiesDynamic.requestbody))
+| extend RoleDefinitionId = tostring(coalesce(RequestBody.properties.roleDefinitionId, RequestBody.Properties.RoleDefinitionId))
+| extend RoleId = tostring(split(RoleDefinitionId, "/")[-1])
+| extend AssignedRole = case(
+    RoleId =~ "8e3af657-a8ff-443c-a75c-2fe8c4bcb635", "Owner",
+    RoleId =~ "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9", "User Access Administrator",
+    RoleId =~ "f58310d9-a9f6-439a-9e8d-f62e7b41a168", "Role Based Access Control Administrator",
+    "Other"
+)
+| where AssignedRole != "Other"
+| project
+    TimeGenerated,
+    Caller,
+    CallerIpAddress,
+    AssignedRole,
+    RoleDefinitionId,
+    OperationNameValue,
+    ActivityStatusValue,
+    ResourceGroup,
+    ResourceId,
+    SubscriptionId,
+    Properties
 | order by TimeGenerated desc
